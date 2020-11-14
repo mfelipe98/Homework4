@@ -8,7 +8,8 @@ import java.util.Scanner;
 public class GameOfNim
 {
     Scanner console = new Scanner(System.in);
-    private int numMarbles;
+    private int totalMarbles;
+    private int turnCounter;
 
     /**
      * Constructor
@@ -17,191 +18,117 @@ public class GameOfNim
      * @param maxMarbles is the maximum amount of marbles for the game of nim
      */
     public GameOfNim(int minMarbles, int maxMarbles) {
-        int numMarbles = (int) Math.round(Math.random() * ((maxMarbles - minMarbles) + 1) + minMarbles);
-        this.numMarbles = numMarbles;
+        int totalMarbles = (int) (Math.random() * ((maxMarbles - minMarbles) + 1) + minMarbles);
+        this.totalMarbles = totalMarbles;
+        turnCounter = 0;
     }
 
-    /**
-     * Interacts with user inputs to play a game of nim in one of two modes: smart or stupid. The first turn is randomly selected.
-     */
     public void play() {
-        System.out.printf("Game begins\nInitially there are " + numMarbles + " in the pile.\n");
+        System.out.printf("Game begins\nInitially there are " + totalMarbles + " in the pile.\n");
+        int computerOrHumanFirstTurn = generateComputerOrHumanFirstTurn();
+        int smartOrStupidComputer = generateSmartOrStupidMode();
+        while (totalMarbles > 1) {
+            takeTurn(computerOrHumanFirstTurn, smartOrStupidComputer);
+        }
+        printWinner(computerOrHumanFirstTurn);
+    }
 
-        int compOrUserTurn = (int) Math.round(Math.random());
-        if (compOrUserTurn == 0) {
-            int playStyle = (int) Math.round(Math.random());
-            if (playStyle == 0) {
-                int i = 0;
-                while (numMarbles > 1) {
-                    System.out.printf("Human's turn:\t");
-                    int marblesRemoved = console.nextInt();
-                    while (marblesRemoved < 1 || marblesRemoved > numMarbles / 2) {
-                        System.out.println("Invalid number of marbles. Please enter a different number.");
-                        System.out.printf("Human's turn:\t");
-                        marblesRemoved = console.nextInt();
-                    }
-                    numMarbles -= marblesRemoved;
-                    System.out.printf("Removed " + marblesRemoved + " marble(s).\tCurrent number of marbles: " + numMarbles + "\n");
-                    i++;
-                    if (numMarbles > 1) {
-                        System.out.printf("Computer's turn:\n");
-                        if (numMarbles > 63) {
-                            marblesRemoved = numMarbles - 63;
-                        }
-                        else if (numMarbles == 63) {
-                            marblesRemoved = (int) (Math.random() * ((numMarbles / 2 - 1) + 1) + 1);
-                        }
-                        else if (numMarbles > 31) {
-                            marblesRemoved = numMarbles - 31;
-                        }
-                        else if (numMarbles == 31) {
-                            marblesRemoved = (int) (Math.random() * ((numMarbles / 2 - 1) + 1) + 1);
-                        }
-                        else if (numMarbles > 15) {
-                            marblesRemoved = numMarbles - 15;
-                        }
-                        else if (numMarbles == 15) {
-                            marblesRemoved = (int) (Math.random() * ((numMarbles / 2 - 1) + 1) + 1);
-                        }
-                        else if (numMarbles > 7) {
-                            marblesRemoved = numMarbles - 7;
-                        }
-                        else if (numMarbles == 7) {
-                            marblesRemoved = (int) (Math.random() * ((numMarbles / 2 - 1) + 1) + 1);
-                        }
-                        else if (numMarbles > 3) {
-                            marblesRemoved = numMarbles - 3;
-                        }
-                        else {
-                            marblesRemoved = 1;
-                        }
-                        numMarbles -= marblesRemoved;
-                        System.out.printf("Removed " + marblesRemoved + " marble(s).\tCurrent number of marbles: " + numMarbles + "\n");
-                        i++;
-                    }
-                }
-                if (i % 2 == 1) {
-                    System.out.println("Human Wins!!");
-                }
-                else {
-                    System.out.println("Computer Wins!!");
-                }
-            }
-            else {
-                int i = 0;
-                while (numMarbles > 1) {
-                    System.out.printf("Human's turn:\t");
-                    int marblesRemoved = console.nextInt();
-                    while (marblesRemoved < 1 || marblesRemoved > numMarbles / 2) {
-                        System.out.println("Invalid number of marbles. Please enter a different number.");
-                        System.out.printf("Human's turn:\t");
-                        marblesRemoved = console.nextInt();
-                    }
-                    numMarbles -= marblesRemoved;
-                    System.out.printf("Removed " + marblesRemoved + " marble(s).\tCurrent number of marbles: " + numMarbles + "\n");
-                    i++;
-                    if (numMarbles > 1) {
-                        System.out.printf("Computer's turn:\n");
-                        marblesRemoved = (int) (Math.random() * (numMarbles / 2 - 1) + 1);
-                        numMarbles -= marblesRemoved;
-                        System.out.printf("Removed " + marblesRemoved + " marble(s).\tCurrent number of marbles: " + numMarbles + "\n");
-                        i++;
-                    }
-                }
-                if (i % 2 == 1) {
-                    System.out.println("Human Wins!!");
-                }
-                else {
-                    System.out.println("Computer Wins!!");
-                }
-            }
+    private int generateComputerOrHumanFirstTurn(){
+        return (int) Math.round(Math.random()); //returns 0 for computer to go first, 1 for computer
+    }
+
+    private int generateSmartOrStupidMode(){
+        return (int) Math.round(Math.random()); //returns 0 for smart mode, 1 for stupid mode
+    }
+
+    private void takeTurn(int firstTurn, int computerMode){
+        if (firstTurn == 0){
+            computerTurn(computerMode);
+            if (totalMarbles > 1)
+                humanTurn();
+        }
+        else{
+            humanTurn();
+            if (totalMarbles > 1)
+                computerTurn(computerMode);
+        }
+    }
+
+    private void computerTurn(int computerMode){
+        if (computerMode == 0) smartComputerTurn();
+        else stupidComputerTurn();
+    }
+
+    private void smartComputerTurn(){
+        int marblesRemoved;
+        if (calculateTotalMarblesAreAPowerOfTwoMinusOne() == true){
+            stupidComputerTurn();
+            return;
+        }
+        System.out.printf("Computer's turn:\t");
+        marblesRemoved = generateOptimalMarblesRemoved();
+        removeMarbles(marblesRemoved);
+        turnCounter++;
+    }
+
+    private boolean calculateTotalMarblesAreAPowerOfTwoMinusOne(){
+        for (int i = 2; i < 7; i++){
+            if (totalMarbles == Math.pow(2, i) - 1) return true;
+        }
+        return false;
+    }
+
+    private void stupidComputerTurn(){
+        int marblesRemoved;
+        System.out.printf("Computer's turn:\t");
+        marblesRemoved = (int) (Math.random() * ((totalMarbles / 2 - 1) + 1) + 1);
+        removeMarbles(marblesRemoved);
+        turnCounter++;
+    }
+
+    private int generateOptimalMarblesRemoved(){
+        int exponentOfTwo = 6;
+        for (; exponentOfTwo > 1; exponentOfTwo--){
+            if (totalMarbles > Math.pow(2, exponentOfTwo) - 1)
+                return totalMarbles - (int) (Math.pow(2, exponentOfTwo) - 1);
+        }
+        return 1;
+    }
+
+    private void removeMarbles(int marblesRemoved){
+        totalMarbles -= marblesRemoved;
+        System.out.printf("Removed " + marblesRemoved + " marble(s).\t");
+        System.out.printf("Current number of marbles: " + totalMarbles + "\n");
+    }
+
+    private void humanTurn(){
+        int marblesRemoved;
+        do{
+            System.out.printf("Human's turn:\t");
+            marblesRemoved = console.nextInt();
+        } while (checkIfLegalMove(marblesRemoved) == false);
+        removeMarbles(marblesRemoved);
+        turnCounter++;
+    }
+
+    private boolean checkIfLegalMove(int marblesRemoved){
+        if (marblesRemoved < 1 || marblesRemoved > totalMarbles / 2){
+            System.out.println("Invalid number of marbles. Please enter a different number.");
+            return false;
+        }
+        else return true;
+    }
+
+    private void printWinner(int firstTurn){
+        if (firstTurn == 0){
+            if (turnCounter % 2 == 1) System.out.println("Computer Wins!!!");
+            else System.out.println("Human Wins!!");
         }
         else {
-            int playStyle = (int) Math.round(Math.random());
-            if (playStyle == 0) {
-                int i = 0;
-                while (numMarbles > 1) {
-                    System.out.printf("Computer's turn:\n");
-                    int marblesRemoved;
-                    if (numMarbles > 63) {
-                        marblesRemoved = numMarbles - 63;
-                    }
-                    else if (numMarbles == 63) {
-                        marblesRemoved = (int) (Math.random() * ((numMarbles / 2 - 1) + 1) + 1);
-                    }
-                    else if (numMarbles > 31) {
-                        marblesRemoved = numMarbles - 31;
-                    }
-                    else if (numMarbles == 31) {
-                        marblesRemoved = (int) (Math.random() * ((numMarbles / 2 - 1) + 1) + 1);
-                    }
-                    else if (numMarbles > 15) {
-                        marblesRemoved = numMarbles - 15;
-                    }
-                    else if (numMarbles == 15) {
-                        marblesRemoved = (int) (Math.random() * ((numMarbles / 2 - 1) + 1) + 1);
-                    }
-                    else if (numMarbles > 7) {
-                        marblesRemoved = numMarbles - 7;
-                    }
-                    else if (numMarbles == 7) {
-                        marblesRemoved = (int) (Math.random() * ((numMarbles / 2 - 1) + 1) + 1);
-                    }
-                    else if (numMarbles > 3) {
-                        marblesRemoved = numMarbles - 3;
-                    }
-                    else {
-                        marblesRemoved = 1;
-                    }
-                    numMarbles -= marblesRemoved;
-                    System.out.printf("Removed " + marblesRemoved + " marble(s).\tCurrent number of marbles: " + numMarbles + "\n");
-                    i++;
-                    if (numMarbles > 1) {
-                        System.out.printf("Human's turn:\t");
-                        marblesRemoved = console.nextInt();
-                        while (marblesRemoved < 1 || marblesRemoved > numMarbles / 2) {
-                            System.out.println("Invalid number of marbles. Please enter a different number.");
-                            System.out.printf("Human's turn:\t");
-                            marblesRemoved = console.nextInt();
-                        }
-                        numMarbles -= marblesRemoved;
-                        System.out.printf("Removed " + marblesRemoved + " marble(s).\tCurrent number of marbles: " + numMarbles + "\n");
-                        i++;
-                    }
-                }
-                if (i % 2 == 1) {
-                    System.out.println("Computer Wins!!");
-                }
-                else {
-                    System.out.println("Human Wins!!");
-                }
-            }
-            else {
-                int i = 0;
-                while (numMarbles > 1) {
-                    System.out.printf("Computer's turn:\n");
-                    int marblesRemoved = (int) (Math.random() * ((numMarbles / 2 - 1) + 1) + 1);
-                    numMarbles -= marblesRemoved;
-                    System.out.printf("Removed " + marblesRemoved + " marble(s).\tCurrent number of marbles: " + numMarbles + "\n");
-                    if (numMarbles > 1) {
-                        System.out.printf("Human's turn:\t");
-                        marblesRemoved = console.nextInt();
-                        while (marblesRemoved < 1 || marblesRemoved > numMarbles / 2) {
-                            System.out.println("Invalid number of marbles. Please enter a different number.");
-                            System.out.printf("Human's turn:\t");
-                            marblesRemoved = console.nextInt();
-                        }
-                        numMarbles -= marblesRemoved;
-                        System.out.printf("Removed " + marblesRemoved + " marble(s).\tCurrent number of marbles: " + numMarbles + "\n");
-                    }
-                }
-                if (i % 2 == 1) {
-                    System.out.println("Computer Wins!!");
-                }
-                else {
-                    System.out.println("Human Wins!!");
-                }
-            }
+            if (turnCounter % 2 == 1) System.out.println("Human Wins!!!");
+            else System.out.println("Computer Wins!!!");
         }
     }
+
+
 }
